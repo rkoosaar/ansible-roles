@@ -1,0 +1,15 @@
+---
+# Vars for Hosts file
+hostname_no_domain: "{% if '.' in hostname %} {{ hostname.split('.')[0] }}{% endif %}"
+
+# vars for pihole
+pihole_installer: /tmp/basic-install.sh
+pihole_interface: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['alias'] }}"
+pihole_ip: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}/24"
+pihole_dns: "10.10.10.1"
+pihole_rev_server: true
+pihole_rev_server_cidr: 10.10.10.0/24
+pihole_rev_server_target: 10.10.10.1
+pihole_rev_server_domain: "domain.local"
+pihole_blocking: true
+pihole_varsconf_loc: /etc/pihole/setupVars.conf

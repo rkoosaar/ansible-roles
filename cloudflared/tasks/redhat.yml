@@ -1,0 +1,23 @@
+---
+# For CentOS/RHEL/Fedora
+- name: Download cloudflared
+  ansible.builtin.get_url:
+    url: https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-x86_64.rpm
+    dest: /tmp/cloudflared-linux-x86_64.rpm
+
+- name: Install cloudflared rpm from a local file
+  ansible.builtin.yum:
+    name: /tmp/cloudflared-linux-x86_64.rpm
+    state: present
+
+- name: Check if cloudflared is installed
+  ansible.builtin.shell: |
+    cloudflared -v
+  changed_when: false
+  register: cloudflared_status
+  ignore_errors: true
+
+- name: Print cloudflared status
+  ansible.builtin.debug:
+    var: cloudflared_status
+  when: cloudflared_status | bool

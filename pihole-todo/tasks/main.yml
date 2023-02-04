@@ -1,0 +1,154 @@
+---
+# - name: Ensure a list of packages are installed
+#   dnf:
+#     name: "{{ add_rpm_pkgs }}"
+#     state: present
+
+- stat:
+    path: /usr/local/bin/pihole
+  register: pihole_binary
+
+- set_fact:
+    pihole_installed: "{{ pihole_binary.stat.exists | default(false) }}"
+
+# Set SELINUX to permissive
+- name: Set SELINUX to permissive
+  lineinfile:
+    path: /etc/sysconfig/selinux
+    regexp: "^SELINUX=enforcing"
+    line: "SELINUX=permissive"
+    state: present
+
+- name: Reboot
+  reboot:
+    reboot_timeout: 300
+    test_command: whoami
+
+# Create Pihole directory
+- name: Create Pihole directory
+  file:
+    path: /etc/pihole
+    state: directory
+
+# >> Creating a "setupVars.conf" file using the template
+- name: Creating a "setupVars.conf" file using the "setupVars.conf.j2" template
+  template:
+    src: templates/setupVars.conf.j2
+    dest: "{{ pihole_varsconf_loc }}"
+    owner: root
+    group: root
+    mode: '0644'
+
+
+## install pihole
+- name: Download pihole intaller
+  get_url:
+    url: https://install.pi-hole.net
+    dest: "{{ pihole_installer }}"
+
+- name: Install pihole
+  #shell: bash {{ pihole_installer }} --unattended --reconfigure
+  shell: bash {{ pihole_installer }} --unattended
+  register: pihole_output
+
+- name: PiHole Output
+  debug: msg={{ pihole_output.stdout_lines }}
+
+# fix "setupVars.conf" file 
+
+- name: fix "setupVars.conf" file 
+  lineinfile:
+    path: "{{ pihole_varsconf_loc }}"
+    regexp: "^REV_SERVER_DOMAIN={{ pihole_rev_server_domain }}PIHOLE_INTERFACE={{ pihole_interface }}"
+    line: "REV_SERVER_DOMAIN={{ pihole_rev_server_domain }}\nPIHOLE_INTERFACE={{ pihole_interface }}"
+    state: present
+
+- name: stop firewalld
+  service:
+    name: firewalld
+    state: stopped
+    enabled: yes
+  notify: restart pihole 
+
+- name: Comment out 127.0.0.1 hostname line in /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    regexp: "^127.0.0.1 {{ hostname }}{{ hostname_no_domain }}"
+    line: "# 127.0.0.1 {{ hostname }}{{ hostname_no_domain }}"
+    state: present
+
+- name: Add IP for pihole in /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ hosts_pihole_ip }} {{ hostname }}{{ hostname_no_domain }}"
+    state: present
+
+# Configure Local DNS - DNS Records
+- name: Get file stat to be able to perform a check in the Local DNS Records tasks
+  local_action: stat path={{ pihole_custom_conf_dir }}/custom.list
+  register: pihole_custom_list_file
+
+- name: Copy Local DNS Records custom.list (provided)
+  template:
+    src: "{{ pihole_custom_conf_dir }}/custom.list"
+    dest: "/etc/pihole/custom.list"
+    owner: root
+    group: root
+    mode: "0644"
+  when: pihole_custom_list_file.stat.exists
+
+- name: Copy Local DNS Records custom.list 
+  copy:
+    src: "custom.list"
+    dest: "/etc/pihole/custom.list"
+    owner: root
+    group: root
+    mode: "0644"
+  when: not pihole_custom_list_file.stat.exists
+
+# Configure Local DNS CNAMEs 
+- name: Get file stat to be able to perform a check in the Local DNS CNAMEs tasks
+  local_action: stat path={{ pihole_custom_conf_dir }}/05-pihole-custom-cname.conf
+  register: pihole_custom_cname_file
+
+- name: Copy Local DNS CNAMEs custom.list (provided)
+  template:
+    src: "{{ pihole_custom_conf_dir }}/05-pihole-custom-cname.conf"
+    dest: "/etc/dnsmasq.d/05-pihole-custom-cname.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  when: pihole_custom_cname_file.stat.exists
+
+- name: Copy Local DNS CNAMEs custom.list 
+  copy:
+    src: "05-pihole-custom-cname.conf"
+    dest: "/etc/dnsmasq.d/05-pihole-custom-cname.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  when: not pihole_custom_cname_file.stat.exists
+
+# Configure LDAP/AD forwarding
+- name: Get file stat to be able to perform a check in the Local DNS CNAMEs tasks
+  local_action: stat path={{ pihole_custom_conf_dir }}/06-localdns-AD.conf
+  register: pihole_localdns_ad_list_file
+
+- name: Copy Local DNS AD config (provided)
+  template:
+    src: "{{ pihole_custom_conf_dir }}/06-localdns-AD.conf"
+    dest: "/etc/dnsmasq.d/06-localdns-AD.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  when: pihole_localdns_ad_list_file.stat.exists
+
+- name: Copy Local DNS AD config
+  copy:
+    src: "06-localdns-AD.conf"
+    dest: "/etc/dnsmasq.d/06-localdns-AD.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  when: not pihole_localdns_ad_list_file.stat.exists
+  notify: restart pihole

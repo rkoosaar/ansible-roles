@@ -1,0 +1,4 @@
+---
+# handlers file for ansible-pihole
+- name: restart pihole
+  shell: pihole restartdns
