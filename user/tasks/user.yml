@@ -1,8 +1,10 @@
 ---
 - name: Make sure we have a 'sudo' group
-  group:
+  ansible.builtin.group:
     name: sudo
     state: present
+  when: 
+    - ansible_distribution == 'Debian'
 
 - name: Add the user admin with a bash shell, appending the group 'sudo'
   ansible.builtin.user:
@@ -10,9 +12,23 @@
     shell: /bin/bash
     groups: sudo
     append: yes
+  when: 
+    - ansible_distribution == 'Debian'
+
+- name: Allow 'sudo' group to have passwordless sudo
+  ansible.builtin.lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%sudo'
+    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+  when: 
+    - ansible_distribution == 'Debian'
+
+
 
 - name: Set authorized key for user
-  authorized_key:
+  ansible.posix.authorized_key:
     user: "{{ username }}"
     state: present
     key: "{{ item }}"
@@ -20,33 +36,38 @@
   loop: "{{ github_ssh_key_url }}"
   when: github_ssh_key_url != None
 
-- name: Allow 'sudo' group to have passwordless sudo
-  lineinfile:
+- name: Remove 'wheel' group password sudo configuration
+  ansible.builtin.lineinfile:
     dest: /etc/sudoers
     state: present
-    regexp: '^%sudo'
-    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+    regexp: '^%wheel  ALL=(ALL)       ALL'
+    line: '# %wheel  ALL=(ALL)       ALL'
     validate: 'visudo -cf %s'
-  when: ansible_user == "root"
+  when: 
+    - ansible_facts['os_family'] == "RedHat"
 
-# - name: Add user to wheel group
-#   user:
-#     name: "{{username}}"
-#     groups:
-#       - wheel
-#     append: yes
-#     state: present
-#     createhome: yes
-#     shell: /bin/bash
-#   when: ansible_user == "root"
+- name: Allow 'wheel' group to have passwordless sudo
+  ansible.builtin.lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^# %wheel        ALL=(ALL)       NOPASSWD: ALL'
+    line: '%wheel        ALL=(ALL)       NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+  when: 
+    - ansible_facts['os_family'] == "RedHat"
+
+
+
+
+
 
 - name: Print ansible user
-  debug:
+  ansible.builtin.debug:
     msg: "{{ ansible_env.SUDO_USER }}"
 
-- name: Pause to get a new dadmin password
+- name: Pause to get a new user password
   ansible.builtin.pause:
-    prompt: "Enter a new dadmin password"
+    prompt: "Enter a new user password"
     echo: no
   register: new_password
   when: change_password | bool
@@ -56,8 +77,8 @@
   when: change_password | bool   
 
 # Change password
-- name: Change dadmin password
-  user:
+- name: Change user password
+  ansible.builtin.user:
     name: "{{ ansible_env.SUDO_USER }}"
     update_password: always
     password: "{{ new_password }}"

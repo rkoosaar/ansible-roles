@@ -1,53 +1,40 @@
 ---
-- import_tasks: hostname.yml
-  tags:
-    - hostname
+- import_tasks: debian.yml
+  when: 
+    - ansible_distribution == 'Debian'
 
-- import_tasks: extend_hd.yml
-  when: extend_hd | bool
-  tags:
-    - extend_hd
+- import_tasks: redhat.yml
+  when: 
+    - ansible_facts['os_family'] == "RedHat"
 
-- import_tasks: locale.yml
-  tags:
-    - locale
+- name: Set authorized key for user
+  ansible.posix.authorized_key:
+    user: "{{ username }}"
+    state: present
+    key: "{{ item }}"
+    validate_certs: "no"
+  loop: "{{ github_ssh_key_url }}"
+  when: github_ssh_key_url != None
 
-- import_tasks: timezone.yml
-  tags:
-    - timezone
+- name: Print ansible user
+  ansible.builtin.debug:
+    msg: "{{ ansible_env.SUDO_USER }}"
 
-- import_tasks: ssh.yml
-  tags:
-    - ssh
+- name: Pause to get a new user password
+  ansible.builtin.pause:
+    prompt: "Enter a new user password"
+    echo: no
+  register: new_password
+  when: change_password | bool
 
-- import_tasks: user.yml
-  tags:
-    - user
+- set_fact:
+    new_password: "{{ new_password.user_input | password_hash('sha512') }}"
+  when: change_password | bool   
 
-- import_tasks: copy_ca_certs.yml
-  when: copy_ca_certs | bool
-  tags:
-    - ca_certs
-
-- import_tasks: apt.yml
-  tags:
-    - apt
-
-- import_tasks: fail2ban.yml
-  tags:
-    - fail2ban
-
-- import_tasks: fixed_ip.yml
-  when: fixed_ip | bool
-  tags:
-    - fixed_ip
-
-- name: reboot server
-  become: true
-  reboot:
-    msg: "reboot initiated by Ansible"
-    connect_timeout: 5
-    reboot_timeout: 600
-    pre_reboot_delay: 0
-    post_reboot_delay: 30
-    test_command: whoami
+# Change password
+- name: Change user password
+  ansible.builtin.user:
+    name: "{{ ansible_env.SUDO_USER }}"
+    update_password: always
+    password: "{{ new_password }}"
+  when: change_password | bool

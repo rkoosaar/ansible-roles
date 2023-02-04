@@ -1,0 +1,20 @@
+---
+- name: Make sure we have a 'sudo' group
+  ansible.builtin.group:
+    name: sudo
+    state: present
+
+- name: Add the user admin with a bash shell, appending the group 'sudo'
+  ansible.builtin.user:
+    name: "{{ username }}"
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+
+- name: Allow 'sudo' group to have passwordless sudo
+  ansible.builtin.lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%sudo'
+    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
