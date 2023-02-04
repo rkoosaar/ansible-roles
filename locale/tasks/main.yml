@@ -1,42 +1,16 @@
 ---
-# Check current locale
-- name: Remove old certificates
+# Check current locale status
+- name: check current locale status
   ansible.builtin.shell: localectl status
   register: locale_status
 
-- name: Print return information from the previous task
+- name: print return information from the previous task
   ansible.builtin.debug:
     msg: "{{ locale_status.stdout_lines | to_nice_json }}"
 
-# - name: Set Locale Status as fact
-#   set_fact:
-#     locale_status_fact: "{{ locale_status.stdout_lines | to_nice_json }}"
+- name: change locale to en_GB.UTF-8
+  ansible.builtin.shell: localectl set-locale LANG=en_GB.UTF-8
+  register: locale_status
 
-# - ansible.builtin.debug:
-#     msg: "{{ locale_status_fact }}"
-
-- name: Testing when statement 
-  ansible.builtin.debug:
-    msg: "{{ locale_status.stdout_lines | to_nice_json }}"
-  when: not locale_status.stdout.find('LANG=en_GB.UTF-8') != 1
-
-
-# # Change locale to en_GB.UTF-8
-# - name: Remove old certificates
-#   shell: |
-#     rm -rf /usr/local/share/ca-certificates/kvsnet.cf/
-#     rm -rf /usr/share/ca-certificates/local/kvsnet.cf/
-#   args:
-#     executable: /usr/bin/bash
-#   become: yes
-
-
-# - name: Ensure GB locale exists
-#   locale_gen:
-#     name: en_GB.UTF-8
-#     state: present
-
-# # - name: ensure US locale exists
-# #   community.general.locale_gen:
-# #     name: en_US.UTF-8
-# #     state: present
+  
+#  when: not locale_status.stdout.find('LANG=en_GB.UTF-8') != 1
