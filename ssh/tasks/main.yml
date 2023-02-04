@@ -1,53 +1,16 @@
 ---
-- import_tasks: hostname.yml
-  tags:
-    - hostname
-
-- import_tasks: extend_hd.yml
-  when: extend_hd | bool
-  tags:
-    - extend_hd
-
-- import_tasks: locale.yml
-  tags:
-    - locale
-
-- import_tasks: timezone.yml
-  tags:
-    - timezone
-
-- import_tasks: ssh.yml
-  tags:
-    - ssh
-
-- import_tasks: user.yml
-  tags:
-    - user
-
-- import_tasks: copy_ca_certs.yml
-  when: copy_ca_certs | bool
-  tags:
-    - ca_certs
-
-- import_tasks: apt.yml
-  tags:
-    - apt
-
-- import_tasks: fail2ban.yml
-  tags:
-    - fail2ban
-
-- import_tasks: fixed_ip.yml
-  when: fixed_ip | bool
-  tags:
-    - fixed_ip
-
-- name: reboot server
+- name: create/update ssh banner
   become: true
-  reboot:
-    msg: "reboot initiated by Ansible"
-    connect_timeout: 5
-    reboot_timeout: 600
-    pre_reboot_delay: 0
-    post_reboot_delay: 30
-    test_command: whoami
+  ansible.builtin.template:
+    src: ssh-banner.j2
+    dest: /etc/issue.net
+  notify:
+    - restart sshd
+
+- name: update ssh settings
+  become: true
+  ansible.builtin.template:
+    src: 60-local.conf.j2
+    dest: /etc/ssh/sshd_config.d/60-local.conf
+  notify:
+    - restart sshd

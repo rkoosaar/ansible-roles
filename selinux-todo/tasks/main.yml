@@ -1,0 +1,22 @@
+# ---
+# Solved my problem with:
+
+# SELINUX=permissive in /etc/sysconfig/selinux
+
+# reboot
+
+# # grep dnsmasq_t /var/log/audit/audit.log | audit2allow -m dnscache > dnscache.te
+
+# # grep dnsmasq_t /var/log/audit/audit.log | audit2allow -M dnscache
+
+# semodule -i dnscache.pp
+
+# Verified with:
+
+# semodule -l | grep dns
+
+# Afterwards:
+
+# SELINUX=enforcing in /etc/sysconfig/selinux
+
+# reboot

@@ -1,0 +1,12 @@
+# Custom SSHD settings
+
+# disable ssh remote root login
+PermitRootLogin no
+
+# disable ssh password login
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+PermitEmptyPasswords no
+
+# add ssh banner info
+Banner /etc/issue.net
