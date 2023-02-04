@@ -18,7 +18,7 @@
 - name: Testing when statement 
   ansible.builtin.debug:
     msg: "{{ locale_status.stdout_lines | to_nice_json }}"
-  when: locale_status.stdout.find('LANG=en_GB.UTF-8') != 1
+  when: not locale_status.stdout.find('LANG=en_GB.UTF-8') != 1
 
 
 # # Change locale to en_GB.UTF-8
