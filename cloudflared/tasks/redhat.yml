@@ -11,14 +11,3 @@
     disable_gpg_check: true
     state: present
 
-- name: Check if cloudflared is installed
-  ansible.builtin.shell: |
-    cloudflared -v
-  changed_when: false
-  register: cloudflared_status
-  ignore_errors: true
-
-- name: Print cloudflared status
-  ansible.builtin.debug:
-    var: cloudflared_status
-  #when: cloudflared_status | bool
