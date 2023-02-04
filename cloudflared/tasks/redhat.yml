@@ -21,4 +21,4 @@
 - name: Print cloudflared status
   ansible.builtin.debug:
     var: cloudflared_status
-  when: cloudflared_status | bool
+  #when: cloudflared_status | bool
