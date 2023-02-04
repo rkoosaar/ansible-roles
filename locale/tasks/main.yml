@@ -8,6 +8,14 @@
   ansible.builtin.debug:
     msg: "{{ locale_status.stdout_lines | to_nice_json }}"
 
+- name: Set Locale Status as fact
+  set_fact:
+    locale_status_fact: "{{ locale_status.stdout_lines | to_nice_json }}"
+
+- ansible.builtin.debug:
+    msg: "{{ locale_status_fact }}"
+
+
 # # Change locale to en_GB.UTF-8
 # - name: Remove old certificates
 #   shell: |
