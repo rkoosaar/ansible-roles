@@ -7,7 +7,7 @@
 
 - name: Print return information from the previous task
   ansible.builtin.debug:
-    msg: "{{ locale_status.stdout_lines | to_json }}"
+    msg: "{{ locale_status.stdout | to_json }}"
 
 # # Change locale to en_GB.UTF-8
 # - name: Remove old certificates
