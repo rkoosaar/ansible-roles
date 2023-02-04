@@ -8,6 +8,7 @@
 - name: Install cloudflared rpm from a local file
   ansible.builtin.yum:
     name: /tmp/cloudflared-linux-x86_64.rpm
+    disable_gpg_check: true
     state: present
 
 - name: Check if cloudflared is installed
