@@ -1,11 +1,31 @@
 ---
-# azure does not have it.
+# Check current locale
+- name: Remove old certificates
+  ansible.builtin.shell: |
+    localectl status
+  register: locale_status
+
+- name: Print return information from the previous task
+  ansible.builtin.debug:
+    var: locale_status
+    #verbosity: 2
+
+# # Change locale to en_GB.UTF-8
+# - name: Remove old certificates
+#   shell: |
+#     rm -rf /usr/local/share/ca-certificates/kvsnet.cf/
+#     rm -rf /usr/share/ca-certificates/local/kvsnet.cf/
+#   args:
+#     executable: /usr/bin/bash
+#   become: yes
+
+
 # - name: Ensure GB locale exists
 #   locale_gen:
 #     name: en_GB.UTF-8
 #     state: present
 
-- name: ensure US locale exists
-  locale_gen:
-    name: en_US.UTF-8
-    state: present
+# # - name: ensure US locale exists
+# #   community.general.locale_gen:
+# #     name: en_US.UTF-8
+# #     state: present
