@@ -1,0 +1,5 @@
+---
+- import_tasks: extend_hd.yml
+  when: extend_hd | bool
+  tags:
+    - extend_hd

@@ -1,0 +1,5 @@
+---
+# enable pve_fail2ban
+pve_fail2ban: no
+# enable logging in fail2ban.yml
+verbose: no

@@ -1,0 +1,4 @@
+---
+# copy_ca_certs.yml
+remote_root_ca_dir: custom-ca
+copy_ca_certs: no

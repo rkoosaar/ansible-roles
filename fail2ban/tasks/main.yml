@@ -1,0 +1,94 @@
+# https://adamtheautomator.com/fail2ban-ssh/
+---
+# Install fail2ban packages
+- name: Install dependencies
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ packages }}"
+    state: present
+  vars:
+      packages:
+        - fail2ban
+
+- name: Autoremove unneeded packages installed as dependencies
+  become: true
+  ansible.builtin.dnf:
+    autoremove: yes
+
+# Delete old fail2ban files
+- name: Remove old fail2ban jail file
+  ansible.builtin.file:
+    state: absent
+    path: "/etc/fail2ban/jail.local"
+
+- name: Copy new fail2ban jail file
+  ansible.builtin.template:
+    src: "fail2ban-jail.j2"
+    dest: "/etc/fail2ban/jail.local"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart fail2ban
+
+- name: Check if fail2ban (sshd) is working
+  ansible.builtin.shell: |
+    fail2ban-client status sshd
+  changed_when: false
+  register: fail2ban_status_sshd
+  ignore_errors: true
+
+- name: Print fail2ban (ssh) status
+  ansible.builtin.debug:
+    var: fail2ban_status_sshd
+  when: verbose | bool
+
+# PVE fail2ban
+- name: Remove old fail2ban PVE filter file
+  ansible.builtin.file:
+    state: absent
+    path: "/etc/fail2ban/filter.d/proxmox.conf"
+  when:
+    - pve_fail2ban | bool 
+    - verbose | bool
+
+- name: Insert/Update fail2ban jail with PVE block
+  ansible.builtin.blockinfile:
+    path: "/etc/fail2ban/jail.local"
+    block: |
+      [proxmox]
+      enabled = true
+      port = https,http,8006
+      filter = proxmox
+      logpath = /var/log/daemon.log
+      maxretry = 3 
+      # 7 days
+      bantime = 604800
+  when:
+    - pve_fail2ban | bool
+
+- name: Copy new fail2ban PVE filter file
+  ansible.builtin.template:
+    src: "fail2ban-pve.j2"
+    dest: "/etc/fail2ban/filter.d/proxmox.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart fail2ban
+  when:
+    - pve_fail2ban | bool
+
+- name: Check if fail2ban (pve) is working
+  ansible.builtin.shell: |
+    fail2ban-client status proxmox
+  changed_when: false
+  register: fail2ban_status_pve
+  ignore_errors: true
+  when:
+  - pve_fail2ban | bool
+
+- name: Print fail2ban (pve) status
+  ansible.builtin.debug:
+    var: fail2ban_status_pve
+  when:
+    - pve_fail2ban | bool  
+    - verbose | bool

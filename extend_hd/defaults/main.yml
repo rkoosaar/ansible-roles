@@ -1,0 +1,9 @@
+---
+
+# extend_hd.yml
+extend_hd_disk: /dev/vg0/var
+extend_hd: no 
+
+# Install-Config.txt
+drive1: /dev/nvme0n1
+drive2: /dev/nvme1n1

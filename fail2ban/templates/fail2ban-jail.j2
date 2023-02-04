@@ -1,0 +1,10 @@
+[sshd]
+port    = ssh
+logpath = %(sshd_log)s
+enabled = true
+
+[DEFAULT]
+findtime = 10m
+maxretry = 3 
+# 7 days
+bantime = 604800

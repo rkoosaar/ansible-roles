@@ -1,0 +1,9 @@
+- name: Extend HD
+  shell: lvextend -l +100%FREE "{{ extend_hd_disk }}"
+  tags:
+    - bootstrap
+
+- name: Extend HD
+  shell: resize2fs "{{ extend_hd_disk }}"
+  tags:
+    - bootstrap

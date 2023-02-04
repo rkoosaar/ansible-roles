@@ -1,0 +1,6 @@
+---
+pkgs_add_rpm:
+  - vim-default-editor
+  - wget
+  - python3
+  - sudo

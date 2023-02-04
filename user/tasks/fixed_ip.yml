@@ -1,0 +1,58 @@
+---
+- name: make sure requirements are met to run vmware modules
+  become: true
+  pip:
+    name: PyVmomi
+    state: present
+
+- name: set fix ip
+  copy:
+    src: "interfaces"
+    dest: "/etc/network/interfaces"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: reboot server
+  become: true
+  reboot:
+    msg: "reboot initiated by Ansible"
+    connect_timeout: 5
+    reboot_timeout: 600
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: whoami
+
+- pause:
+    minutes: 1
+
+- name: get VM ip
+  community.vmware.vmware_guest_info:
+    hostname: "{{ lookup('env', 'VSPHERE_SERVER') }}"
+    username: "{{ lookup('env', 'VSPHERE_USER') }}"
+    password: "{{ lookup('env', 'VSPHERE_PASSWORD') }}"
+    validate_certs: no
+    datacenter: "{{ vcenter_datacenter_name }}"
+    name: "{{ item }}"
+    schema: "vsphere"
+    properties: ["guest.ipAddress"]
+  delegate_to: localhost
+  register: moid_info
+  loop: "{{ inventory_vms }}"
+
+- name: Show VM start (power on) Info
+  ansible.builtin.debug:
+    msg: "{{ item.instance.guest.ipAddress }}"
+  loop: "{{ moid_info.results | from_yaml | list }}"
+
+- name: Add the captured IP to hosts file
+  local_action: lineinfile 
+                  path="{{ inventory_file }}"
+                  insertafter="^[vms]"
+                  regexp="^{{ item.invocation.module_args.name }} ansible_host="
+                  line="{{ item.invocation.module_args.name }} ansible_host={{ item.instance.guest.ipAddress }}"
+  loop: "{{ moid_info.results | from_yaml | list }}"
+
+- meta: refresh_inventory
+- pause:
+    minutes: 1

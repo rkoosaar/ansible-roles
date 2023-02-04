@@ -1,0 +1,36 @@
+- name: Update apt cache and upgrade
+  apt:
+    update_cache: yes
+    upgrade: "yes"
+  become: true
+
+- name: Install dependencies
+  become: true
+  apt:
+      name: "{{ packages }}"
+  vars:
+      packages:
+        - apt-transport-https
+        - vim
+        - curl
+        - sudo
+        - bash-completion
+        - wget
+        - gnupg2
+        - gnupg-agent 
+        - python3-apt
+        - dnsutils
+        - nfs-common
+        - open-iscsi
+        - util-linux
+        - python-is-python3
+
+- name: Remove useless packages from the cache
+  become: true
+  apt:
+    autoclean: yes
+
+- name: Remove dependencies that are no longer required
+  become: true
+  apt:
+    autoremove: yes

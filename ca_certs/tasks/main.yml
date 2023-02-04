@@ -1,0 +1,5 @@
+---
+- import_tasks: copy_ca_certs.yml
+  when: copy_ca_certs | bool
+  tags:
+    - ca_certs

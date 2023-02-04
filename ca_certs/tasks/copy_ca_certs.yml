@@ -1,0 +1,63 @@
+# Copy CA certs Debian
+- name: Create a Directory for CA Certificate (if it does not exist)
+  file:
+    path: "/usr/share/ca-certificates/{{ remote_root_ca_dir }}"
+    state: directory
+    mode: "0755"
+  when: 
+    - ansible_os_family != 'Windows'
+    - ansible_distribution == 'Debian'
+
+- name: Check if CA Certificate has been copied
+  stat:
+    path: "/usr/share/ca-certificates/{{ remote_root_ca_dir }}/ca.crt"
+  register: ca_file
+  when: 
+    - ansible_os_family != 'Windows'
+    - ansible_distribution == 'Debian'
+
+- name: Copy CA Certificate
+  copy:
+    src: "ca.crt"
+    dest: "/usr/share/ca-certificates/{{ remote_root_ca_dir }}"
+  when: 
+    - ca_file.stat.exists is false
+    - ansible_os_family != 'Windows'
+    - ansible_distribution == 'Debian'
+
+- name: Add line in file
+  lineinfile:
+    path: "/etc/ca-certificates.conf"
+    line: "{{ remote_root_ca_dir }}/ca.crt"
+    insertafter: EOF
+  when: 
+    - ca_file.stat.exists is false
+    - ansible_os_family != 'Windows'
+    - ansible_distribution == 'Debian'
+
+- name: read the ca-certificates file
+  shell: cat /etc/ca-certificates.conf
+  register: ca_file_tmp
+  when:    
+    - ansible_os_family != 'Windows'
+    - ansible_distribution == 'Debian'
+
+- name: replace cert
+  replace:
+    path: /etc/ca-certificates.conf
+    regexp: '!{{ remote_root_ca_dir }}/ca.crt'
+    replace: "{{ remote_root_ca_dir }}/ca.crt"
+  when:    
+    - ansible_os_family != 'Windows'
+    - ansible_distribution == 'Debian'
+    - ca_file_tmp.stdout.find('bromium') != -1
+
+- name: Update CA Certificates
+  shell: |
+      update-ca-certificates -f
+  register: update_ca_cert
+  become: true
+  when: 
+    - ca_file.stat.exists is false
+    - ansible_os_family != 'Windows'
+    - ansible_distribution == 'Debian'

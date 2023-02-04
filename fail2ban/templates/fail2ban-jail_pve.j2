@@ -1,0 +1,13 @@
+[sshd]
+port    = ssh
+logpath = %(sshd_log)s
+enabled = true
+
+[proxmox]
+enabled = true
+port = https,http,8006
+filter = proxmox
+logpath = /var/log/daemon.log
+maxretry = 3 
+# 7 days
+bantime = 604800

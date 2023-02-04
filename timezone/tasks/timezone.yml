@@ -1,0 +1,4 @@
+- name: set timezone to Europe/London
+  become: true
+  timezone:
+    name: Europe/London
