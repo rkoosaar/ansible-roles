@@ -1,8 +1,7 @@
 ---
 # Check current locale
 - name: Remove old certificates
-  ansible.builtin.shell: |
-    localectl status
+  ansible.builtin.shell: localectl status
   register: locale_status
 
 - name: Print return information from the previous task
