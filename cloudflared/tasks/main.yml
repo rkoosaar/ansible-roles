@@ -1,22 +1,18 @@
 ---
+- name: Check if cloudflared binary exists
+  ansible.builtin.stat:
+    path: "{{ cloudflared_binary }}"
+  register: cloudflared_binary_installed
+
 - import_tasks: debian.yml
   when: 
     - ansible_distribution == 'Debian'
+    - not cloudflared_binary_installed.stat.exists
 
 - import_tasks: redhat.yml
   when: 
     - ansible_facts['os_family'] == "RedHat"
-
-- name: Check if cloudflared is installed
-  ansible.builtin.shell: |
-    cloudflared -v
-  changed_when: false
-  register: cloudflared_status
-  ignore_errors: true
-
-- name: Print cloudflared status
-  ansible.builtin.debug:
-    var: cloudflared_status
+    - not cloudflared_binary_installed.stat.exists
 
 - name: Create a cloudflared user to run the daemon
   ansible.builtin.user:
@@ -25,24 +21,32 @@
     create_home: false
     system: true
     state: present
+  when: 
+    - not cloudflared_binary_installed.stat.exists
 
 - name: create a configuration file for cloudflared
   become: true
   ansible.builtin.template:
     src: cloudflared.j2
     dest: /etc/default/cloudflared
+  when: 
+    - not cloudflared_binary_installed.stat.exists
 
 - name: Change file ownership and group for cloudflared configuration file
   ansible.builtin.file:
     path: /etc/default/cloudflared
     owner: cloudflared
     group: cloudflared
+  when: 
+    - not cloudflared_binary_installed.stat.exists
 
 - name: Change file ownership and group for cloudflared executable file
   ansible.builtin.file:
     path: /usr/local/bin/cloudflared
     owner: cloudflared
     group: cloudflared
+  when: 
+    - not cloudflared_binary_installed.stat.exists
 
 - name: create the cloudflared systemd script
   become: true
@@ -50,6 +54,8 @@
     src: cloudflared.service.j2
     dest: /etc/systemd/system/cloudflared.service
     mode: "0644"
+  when: 
+    - not cloudflared_binary_installed.stat.exists
 
 - name: enable and start cloudflared
   ansible.builtin.systemd:
@@ -58,3 +64,15 @@
     name: cloudflared
     enabled: yes
     masked: no
+  when: 
+    - not cloudflared_binary_installed.stat.exists
+
+- name: Check if cloudflared service is running
+  ansible.builtin.systemd:
+    state: started
+    name: cloudflared
+  register: cloudflared_status
+
+- name: Print cloudflared status
+  ansible.builtin.debug:
+    var: cloudflared_status
