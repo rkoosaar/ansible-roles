@@ -4,12 +4,12 @@
     path: "{{ cloudflared_binary }}"
   register: cloudflared_binary_installed
 
-- import_tasks: debian.yml
+- ansible.builtin.import_tasks: debian.yml
   when: 
     - ansible_distribution == 'Debian'
     - not cloudflared_binary_installed.stat.exists
 
-- import_tasks: redhat.yml
+- ansible.builtin.import_tasks: redhat.yml
   when: 
     - ansible_facts['os_family'] == "RedHat"
     - not cloudflared_binary_installed.stat.exists

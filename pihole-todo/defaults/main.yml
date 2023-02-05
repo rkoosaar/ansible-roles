@@ -1,15 +1,59 @@
 ---
-# Vars for Hosts file
-hostname_no_domain: "{% if '.' in hostname %} {{ hostname.split('.')[0] }}{% endif %}"
+# config 
+pihole_binary_location: /usr/local/bin/pihole
+pihole_user: "pihole"
+pihole_group: "pihole"
+pihole_config_dir: "/etc/pihole"
 
-# vars for pihole
+# install
 pihole_installer: /tmp/basic-install.sh
-pihole_interface: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['alias'] }}"
-pihole_ip: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}/24"
-pihole_dns: "10.10.10.1"
-pihole_rev_server: true
-pihole_rev_server_cidr: 10.10.10.0/24
-pihole_rev_server_target: 10.10.10.1
-pihole_rev_server_domain: "domain.local"
-pihole_blocking: true
-pihole_varsconf_loc: /etc/pihole/setupVars.conf
+
+###############################################################################
+# Pi-Hole setupVars.conf
+###############################################################################
+pihole_admin_email: ''
+
+# pihole_privacylevel
+# 0 = Show everything and record everything
+#     Gives maximum amount of statistics
+# 1 = Hide domains: Display and store all domains as "hidden"
+#     This disables the Top Domains and Top Ads tables on the dashboard
+# 2 = Hide domains and clients: Display and store all domains as "hidden" and all clients as "0.0.0.0"
+#     This disables all tables on the dashboard
+# 3 = Anonymous mode: This disables basically everything except the live anonymous statistics
+#     No history is saved at all to the database, and nothing is shown in the query log. Also, there are no top item lists.
+# 4 = No Statistics mode: This disables all statistics processing. Even the query counters will not be available.
+#     Note that regex blocking is not available when query analyzing is disabled.
+#     Additionally, you can disable logging to the file /var/log/pihole.log using `sudo pihole logging off`.
+### NOTE: set pihole_privacylevel in the hosts file for each host
+###       This line resets to default value if not set in hosts file
+pihole_privacy: "{{ pihole.privacylevel | default('0') }}"
+
+# https://docs.pi-hole.net/ftldns/blockingmode/
+# NULL is the Pi-Hole default blocking mode
+pihole_blockingmode: "NULL"
+
+# DNSMASQ_LISTENING
+# note: if this Pi-Hole is used as DNS server for devices via Tailscale,
+# listening needs to be allowed from all origins, otherwise traffic from them
+# cannot reach the Pi-Hole.
+# Allowed values and corresponding webadmin setting:
+# local  = Listen on all interfaces
+# single = Listen only on interface eth0
+# all    = Listen on all interfaces, permit all origins
+pihole_listening: "local"
+
+
+# # Vars for Hosts file
+# hostname_no_domain: "{% if '.' in hostname %} {{ hostname.split('.')[0] }}{% endif %}"
+
+# # vars for pihole
+
+# pihole_interface: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['alias'] }}"
+# pihole_ip: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}/24"
+# pihole_dns: "10.10.10.1"
+# pihole_rev_server: true
+# pihole_rev_server_cidr: 10.10.10.0/24
+# pihole_rev_server_target: 10.10.10.1
+# pihole_rev_server_domain: "domain.local"
+# pihole_blocking: true

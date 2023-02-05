@@ -1,4 +1,9 @@
 ---
-# handlers file for ansible-pihole
 - name: restart pihole
-  shell: pihole restartdns
+  ansible.builtin.shell: pihole restartdns
+
+- name: restart pihole DNS resolver
+  ansible.builtin.systemd:
+    name: pihole-FTL.service
+    state: restarted
+  listen: restart pihole-FTL
