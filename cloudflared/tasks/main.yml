@@ -75,4 +75,4 @@
 
 - name: Print cloudflared status
   ansible.builtin.debug:
-    var: cloudflared_status
+    var: cloudflared_status.state
