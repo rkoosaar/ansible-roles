@@ -1,0 +1,151 @@
+---
+
+# - name: check if pihole is already installed
+#   ansible.builtin.stat:
+#     path: "{{ pihole_binary_location }}"
+#   register: pihole_binary_installed
+
+# - ansible.builtin.set_fact:
+#     pihole_installed: "{{ pihole_binary_installed.stat.exists | default(false) }}"
+
+############################################
+# CONFIG
+############################################
+
+# gs_user: gravity
+# gs_group: gravity
+# gs_config_dir: /etc/gravity-sync
+# gs_remote_user: {{ gs_user }}
+# gs_remote_host: '{{ ansible_default_ipv4.address }}'
+
+- name: "create {{ gs_user }} user and group"
+  ansible.builtin.user:
+    name: "{{ gs_user }}"
+    shell: /bin/bash
+    create_home: true
+    state: present
+
+- name: "add {{ gs_user }} to wheel group"
+  ansible.builtin.user:
+    name: "{{ gs_user }}"
+    groups: wheel
+    append: yes
+
+# add ssh keys for access for {{ gs_user }}
+
+- name: create gravity-sync configuration directory
+  ansible.builtin.file:
+    name: "{{ gs_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0775"
+
+- name: prepare gravity-sync configuration
+  ansible.builtin.template:
+    src: "gravity-sync.conf.j2"
+    dest: "{{ gs_config_dir }}/gravity-sync.conf"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: copy gravity-sync ssh keys with correct permissions
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ gs_config_dir }}"
+    owner: "{{ gs_user }}"
+    group: "{{ gs_group }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { src: 'gravity-sync.rsa', mode: '0600' }
+    - { src: 'gravity-sync.rsa.pub', mode: '0644' }
+
+# create ssh folder for authorized_keys
+
+- name: "create ssh directory for {{ gs_user }} if it does not exist"
+  ansible.builtin.file:
+    path: "/home/{{ gs_user }}/.ssh"
+    state: directory
+    mode: '0700'
+
+- name: add gravity-sync ssh keys to authorized_keys file
+  ansible.builtin.copy:
+    src: "{{ authorized_keys_src }}"
+    dest: "/home/{{ gs_user }}/.ssh/authorized_keys"
+    owner: "{{ gs_user }}"
+    group: "{{ gs_group }}"
+    mode: "{{ authorized_keys_mode }}"
+  var:
+    - authorized_keys_src: 'gravity-sync.rsa'
+    - authorized_keys_mode: '0600'
+
+
+
+
+# create folder gravity-sync
+# drwxrwxr-x.   3 root   root   4.0K Feb  6 17:06 gravity-sync
+
+# add files to gravity-sync folder:
+
+# gravity-sync.conf as root:root with 644
+# -rw-r--r--. 1 root root 1000 Feb  6 17:01 gravity-sync.conf
+#-rw-------. 1 rk   rk   2610 Feb  6 17:01 gravity-sync.rsa
+#-rw-r--r--. 1 rk   rk    574 Feb  6 17:01 gravity-sync.rsa.pub
+
+# gravity-sync.rsa with permissions 600 user rk:rk:
+
+
+
+# gravity-sync.rsa.pub:
+
+
+# install script:
+# curl -sSL https://raw.githubusercontent.com/vmstan/gs-install/main/gs-install.sh | bash
+# 
+
+# - name: download pihole intaller
+#   ansible.builtin.get_url:
+#     url: https://install.pi-hole.net
+#     dest: "{{ pihole_installer }}"
+#   when: not pihole_installed
+
+# - name: install pihole
+#   ansible.builtin.shell: bash {{ pihole_installer }} --unattended
+#   register: pihole_output
+#   when: not pihole_installed
+
+# - name: pihole output
+#   ansible.builtin.debug: msg={{ pihole_output.stdout_lines }}
+#   when: not pihole_installed
+
+
+# configuration
+
+# The configuration will be saved as gravity-sync.conf in /etc/gravity-sync. 
+
+# + rollback
+# + modify dns
+# + do snapshot
+# + install cloudflared
+# + install pihole
+# + change pihole pwd
+
+# - install gravity-sync
+# - install keepalived
+
+# sudo nmcli con modify enp6s18 ipv4.dns "172.16.20.1"
+# sudo nmcli con show enp6s18 | grep dns
+# sudo systemctl restart NetworkManager
+
+# » Gravity Sync Remote Host Settings
+# › Remote Pi-hole host address
+# ? IP: 172.16.20.4
+# ✓ Saving 172.16.20.4 host to gravity-sync.conf
+# › Remote Pi-hole host username
+# ? User: rk
+# ✓ Saving rk@172.16.20.4 to gravity-sync.conf
+# » Gravity Sync SSH Key Settings
+# ✓ Generating new SSH key
+# ✓ Moving private key to /etc/gravity-sync/gravity-sync.rsa
+# ✓ Moving public key to /etc/gravity-sync/gravity-sync.rsa.pub
+# ✓ Loading gravity-sync.conf
