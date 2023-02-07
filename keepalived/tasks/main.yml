@@ -31,9 +31,9 @@
   vars:
     gen_auth_pass: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
 
-- name: creatre chk_ftl script
+- name: create chk_ftl script
   ansible.builtin.copy:
-    src: "/chk_ftl"
+    src: "chk_ftl"
     dest: "{{ keepalived_scripts_dir }}/chk_ftl"
     mode: "0755"
 
