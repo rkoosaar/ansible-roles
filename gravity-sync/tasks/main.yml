@@ -1,120 +1,120 @@
 ---
-# - name: "create {{ gs_user }} user and group"
-#   ansible.builtin.user:
-#     name: "{{ gs_user }}"
-#     shell: /bin/bash
-#     create_home: true
-#     state: present
+- name: "create {{ gs_user }} user and group"
+  ansible.builtin.user:
+    name: "{{ gs_user }}"
+    shell: /bin/bash
+    create_home: true
+    state: present
 
-# - name: "add {{ gs_user }} to wheel group"
-#   ansible.builtin.user:
-#     name: "{{ gs_user }}"
-#     groups: wheel
-#     append: yes
+- name: "add {{ gs_user }} to wheel group"
+  ansible.builtin.user:
+    name: "{{ gs_user }}"
+    groups: wheel
+    append: yes
 
-# - name: create gravity-sync configuration directory
-#   ansible.builtin.file:
-#     name: "{{ gs_config_dir }}"
-#     state: directory
-#     owner: root
-#     group: root
-#     mode: "0775"
+- name: create gravity-sync configuration directory
+  ansible.builtin.file:
+    name: "{{ gs_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0775"
 
-# - name: prepare gravity-sync configuration
-#   ansible.builtin.template:
-#     src: "gravity-sync.conf.j2"
-#     dest: "{{ gs_config_dir }}/gravity-sync.conf"
-#     owner: root
-#     group: root
-#     mode: "0644"
+- name: prepare gravity-sync configuration
+  ansible.builtin.template:
+    src: "gravity-sync.conf.j2"
+    dest: "{{ gs_config_dir }}/gravity-sync.conf"
+    owner: root
+    group: root
+    mode: "0644"
 
-# - name: configure REMOTE_HOST on first server
-#   ansible.builtin.lineinfile:
-#     path: "{{ gs_config_dir }}/gravity-sync.conf"
-#     regexp: "^REMOTE_HOST="
-#     line: "REMOTE_HOST='{{ gs_host2 }}'"
-#   when: ansible_default_ipv4.address == gs_host1
+- name: configure REMOTE_HOST on first server
+  ansible.builtin.lineinfile:
+    path: "{{ gs_config_dir }}/gravity-sync.conf"
+    regexp: "^REMOTE_HOST="
+    line: "REMOTE_HOST='{{ gs_host2 }}'"
+  when: ansible_default_ipv4.address == gs_host1
 
-# - name: configure REMOTE_HOST on first server
-#   ansible.builtin.lineinfile:
-#     path: "{{ gs_config_dir }}/gravity-sync.conf"
-#     regexp: "^REMOTE_HOST="
-#     line: "REMOTE_HOST='{{ gs_host1 }}'"
-#   when: ansible_default_ipv4.address == gs_host2
+- name: configure REMOTE_HOST on first server
+  ansible.builtin.lineinfile:
+    path: "{{ gs_config_dir }}/gravity-sync.conf"
+    regexp: "^REMOTE_HOST="
+    line: "REMOTE_HOST='{{ gs_host1 }}'"
+  when: ansible_default_ipv4.address == gs_host2
 
-# - name: check if gravity-sync keypair is already generated
-#   ansible.builtin.stat:
-#     path: "/tmp/gravity-sync.rsa"
-#   register: gs_keypair_generated
+- name: check if gravity-sync keypair is already generated
+  ansible.builtin.stat:
+    path: "/tmp/gravity-sync.rsa"
+  register: gs_keypair_generated
 
-# - ansible.builtin.set_fact:
-#     pihole_installed: "{{ gs_keypair_generated.stat.exists | default(false) }}"
+- ansible.builtin.set_fact:
+    pihole_installed: "{{ gs_keypair_generated.stat.exists | default(false) }}"
 
-# - name: generate gravity-sync keypair
-#   community.crypto.openssh_keypair:
-#     path: "/tmp/gravity-sync.rsa"
-#     mode: '0777'
-#   delegate_to: localhost
-#   when: not gs_keypair_generated
+- name: generate gravity-sync keypair
+  community.crypto.openssh_keypair:
+    path: "/tmp/gravity-sync.rsa"
+    mode: '0777'
+  delegate_to: localhost
+  when: not gs_keypair_generated
 
-# - name: copy gravity-sync keypair with correct permissions
-#   ansible.builtin.copy:
-#     src: "/tmp/{{ item.src }}"
-#     dest: "{{ gs_config_dir }}"
-#     owner: "{{ gs_user }}"
-#     group: "{{ gs_group }}"
-#     mode: "{{ item.mode }}"
-#   loop:
-#     - { src: 'gravity-sync.rsa', mode: '0600' }
-#     - { src: 'gravity-sync.rsa.pub', mode: '0644' }
+- name: copy gravity-sync keypair with correct permissions
+  ansible.builtin.copy:
+    src: "/tmp/{{ item.src }}"
+    dest: "{{ gs_config_dir }}"
+    owner: "{{ gs_user }}"
+    group: "{{ gs_group }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { src: 'gravity-sync.rsa', mode: '0600' }
+    - { src: 'gravity-sync.rsa.pub', mode: '0644' }
 
-# - name: "create ssh directory for {{ gs_user }} if it does not exist"
-#   ansible.builtin.file:
-#     path: "/home/{{ gs_user }}/.ssh"
-#     state: directory
-#     owner: "{{ gs_user }}"
-#     group: "{{ gs_group }}"
-#     mode: '0700'
+- name: "create ssh directory for {{ gs_user }} if it does not exist"
+  ansible.builtin.file:
+    path: "/home/{{ gs_user }}/.ssh"
+    state: directory
+    owner: "{{ gs_user }}"
+    group: "{{ gs_group }}"
+    mode: '0700'
 
-# - name: add gravity-sync ssh keys to authorized_keys file
-#   ansible.builtin.copy:
-#     src: "{{ authorized_keys_src }}"
-#     dest: "/home/{{ gs_user }}/.ssh/authorized_keys"
-#     owner: "{{ gs_user }}"
-#     group: "{{ gs_group }}"
-#     mode: "{{ authorized_keys_mode }}"
-#   vars:
-#     authorized_keys_src: '/tmp/gravity-sync.rsa.pub'
-#     authorized_keys_mode: '0600'
+- name: add gravity-sync ssh keys to authorized_keys file
+  ansible.builtin.copy:
+    src: "{{ authorized_keys_src }}"
+    dest: "/home/{{ gs_user }}/.ssh/authorized_keys"
+    owner: "{{ gs_user }}"
+    group: "{{ gs_group }}"
+    mode: "{{ authorized_keys_mode }}"
+  vars:
+    authorized_keys_src: '/tmp/gravity-sync.rsa.pub'
+    authorized_keys_mode: '0600'
 
-# - name: download gravity-sync intaller
-#   ansible.builtin.get_url:
-#     url: https://raw.githubusercontent.com/vmstan/gs-install/main/gs-install.sh
-#     dest: "{{ gs_installer }}"
+- name: download gravity-sync intaller
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/vmstan/gs-install/main/gs-install.sh
+    dest: "{{ gs_installer }}"
 
-# - name: install gravity-sync
-#   ansible.builtin.shell: bash {{ gs_installer }}
-#   register: gs_installer_output
+- name: install gravity-sync
+  ansible.builtin.shell: bash {{ gs_installer }}
+  register: gs_installer_output
 
-# - name: gravity-sync installer output
-#   ansible.builtin.debug: msg={{ gs_installer_output }}
+- name: gravity-sync installer output
+  ansible.builtin.debug: msg={{ gs_installer_output }}
 
-# - name: Ensure servers are present in known_hosts file
-#   known_hosts:
-#     name: "{{ hostvars[item].ansible_host }}"
-#     state: present
-#     key: "{{ lookup('pipe', 'ssh-keyscan {{ hostvars[item].ansible_host }}') }}"
-#     hash_host: true
-#   with_items: "{{ groups.dns }}"
+- name: Ensure servers are present in known_hosts file
+  known_hosts:
+    name: "{{ hostvars[item].ansible_host }}"
+    state: present
+    key: "{{ lookup('pipe', 'ssh-keyscan {{ hostvars[item].ansible_host }}') }}"
+    hash_host: true
+  with_items: "{{ groups.dns }}"
 
-# - name: prepare known_hosts file for gravity-sync ssh 
-#   ansible.builtin.copy:
-#     src: "/root/.ssh/known_hosts"
-#     dest: "/home/{{ gs_user }}/.ssh/known_hosts"
-#     remote_src: true
-#     owner: "{{ gs_user }}"
-#     group: "{{ gs_group }}"
-#     mode: "0644"
+- name: prepare known_hosts file for gravity-sync ssh 
+  ansible.builtin.copy:
+    src: "/root/.ssh/known_hosts"
+    dest: "/home/{{ gs_user }}/.ssh/known_hosts"
+    remote_src: true
+    owner: "{{ gs_user }}"
+    group: "{{ gs_group }}"
+    mode: "0644"
 
 - name: set gravity-sync to auto
   become_user: "{{ gs_user }}"
@@ -123,79 +123,3 @@
 
 - name: set gravity-sync to auto output
   ansible.builtin.debug: msg={{ gs_set_auto_output.stdout }}
-
-# - name: install gravity-sync
-#   ansible.builtin.shell: ssh -o "StrictHostKeyChecking no" {{ gs_host2 }}
-#   when: ansible_default_ipv4.address == gs_host1
-
-# - name: install gravity-sync
-#   ansible.builtin.shell: ssh -o "StrictHostKeyChecking no" {{ gs_host1 }}
-#   when: ansible_default_ipv4.address == gs_host2
-
-# create folder gravity-sync
-# drwxrwxr-x.   3 root   root   4.0K Feb  6 17:06 gravity-sync
-
-# add files to gravity-sync folder:
-
-# gravity-sync.conf as root:root with 644
-# -rw-r--r--. 1 root root 1000 Feb  6 17:01 gravity-sync.conf
-#-rw-------. 1 rk   rk   2610 Feb  6 17:01 gravity-sync.rsa
-#-rw-r--r--. 1 rk   rk    574 Feb  6 17:01 gravity-sync.rsa.pub
-
-# gravity-sync.rsa with permissions 600 user rk:rk:
-
-
-
-# gravity-sync.rsa.pub:
-
-
-# install script:
-# curl -sSL https://raw.githubusercontent.com/vmstan/gs-install/main/gs-install.sh | bash
-# 
-
-# - name: download pihole intaller
-#   ansible.builtin.get_url:
-#     url: https://install.pi-hole.net
-#     dest: "{{ pihole_installer }}"
-#   when: not pihole_installed
-
-# - name: install pihole
-#   ansible.builtin.shell: bash {{ pihole_installer }} --unattended
-#   register: pihole_output
-#   when: not pihole_installed
-
-# - name: pihole output
-#   ansible.builtin.debug: msg={{ pihole_output.stdout_lines }}
-#   when: not pihole_installed
-
-
-# configuration
-
-# The configuration will be saved as gravity-sync.conf in /etc/gravity-sync. 
-
-# + rollback
-# + modify dns
-# + do snapshot
-# + install cloudflared
-# + install pihole
-# + change pihole pwd
-
-# - install gravity-sync
-# - install keepalived
-
-# sudo nmcli con modify enp6s18 ipv4.dns "172.16.20.1"
-# sudo nmcli con show enp6s18 | grep dns
-# sudo systemctl restart NetworkManager
-
-# » Gravity Sync Remote Host Settings
-# › Remote Pi-hole host address
-# ? IP: 172.16.20.4
-# ✓ Saving 172.16.20.4 host to gravity-sync.conf
-# › Remote Pi-hole host username
-# ? User: rk
-# ✓ Saving rk@172.16.20.4 to gravity-sync.conf
-# » Gravity Sync SSH Key Settings
-# ✓ Generating new SSH key
-# ✓ Moving private key to /etc/gravity-sync/gravity-sync.rsa
-# ✓ Moving public key to /etc/gravity-sync/gravity-sync.rsa.pub
-# ✓ Loading gravity-sync.conf
