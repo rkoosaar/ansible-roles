@@ -99,18 +99,19 @@
 # - name: gravity-sync installer output
 #   ansible.builtin.debug: msg={{ gs_installer_output }}
 
-- name: Ensure servers are present in known_hosts file
-  known_hosts:
-    name: "{{ hostvars[item].ansible_host }}"
-    state: present
-    key: "{{ lookup('pipe', 'ssh-keyscan {{ hostvars[item].ansible_host }}') }}"
-    hash_host: true
-  with_items: "{{ groups.dns }}"
+# - name: Ensure servers are present in known_hosts file
+#   known_hosts:
+#     name: "{{ hostvars[item].ansible_host }}"
+#     state: present
+#     key: "{{ lookup('pipe', 'ssh-keyscan {{ hostvars[item].ansible_host }}') }}"
+#     hash_host: true
+#   with_items: "{{ groups.dns }}"
 
 - name: prepare known_hosts file for gravity-sync ssh 
   ansible.builtin.copy:
     src: "/root/known_hosts"
     dest: "/home/{{ gs_user }}/.ssh/known_hosts"
+    remote_src: true
     owner: "{{ gs_user }}"
     group: "{{ gs_group }}"
     mode: "0644"
