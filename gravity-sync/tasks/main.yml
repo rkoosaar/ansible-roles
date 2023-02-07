@@ -64,12 +64,12 @@
 - name: generate gravity-sync keypair
   become: true
   community.crypto.openssh_keypair:
-    path: "{{ role_path }}/files/gravity-sync.rsa"
+    path: "/tmp/gravity-sync.rsa"
   delegate_to: localhost
 
 - name: copy gravity-sync keypair with correct permissions
   ansible.builtin.copy:
-    src: "{{ item.src }}"
+    src: "/tmp/{{ item.src }}"
     dest: "{{ gs_config_dir }}"
     owner: "{{ gs_user }}"
     group: "{{ gs_group }}"
