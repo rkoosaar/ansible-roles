@@ -99,13 +99,21 @@
 # - name: gravity-sync installer output
 #   ansible.builtin.debug: msg={{ gs_installer_output }}
 
-- name: install gravity-sync
-  ansible.builtin.shell: ssh -o "StrictHostKeyChecking no" {{ gs_host2 }}
-  when: ansible_default_ipv4.address == gs_host1
+- name: Ensure servers are present in known_hosts file
+  known_hosts:
+    name: "{{ hostvars[item].ansible_host }}"
+    state: present
+    key: "{{ lookup('pipe', 'ssh-keyscan {{ hostvars[item].ansible_host }}') }}"
+    hash_host: true
+  with_items: "{{ groups.servers }}"
 
-- name: install gravity-sync
-  ansible.builtin.shell: ssh -o "StrictHostKeyChecking no" {{ gs_host1 }}
-  when: ansible_default_ipv4.address == gs_host2
+# - name: install gravity-sync
+#   ansible.builtin.shell: ssh -o "StrictHostKeyChecking no" {{ gs_host2 }}
+#   when: ansible_default_ipv4.address == gs_host1
+
+# - name: install gravity-sync
+#   ansible.builtin.shell: ssh -o "StrictHostKeyChecking no" {{ gs_host1 }}
+#   when: ansible_default_ipv4.address == gs_host2
 
 # create folder gravity-sync
 # drwxrwxr-x.   3 root   root   4.0K Feb  6 17:06 gravity-sync
