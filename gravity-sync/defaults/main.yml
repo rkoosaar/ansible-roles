@@ -2,5 +2,5 @@
 gs_user: gravity
 gs_group: gravity
 gs_config_dir: /etc/gravity-sync
-gs_remote_user: {{ gs_user }}
+gs_remote_user: '{{ gs_user }}'
 gs_remote_host: '{{ ansible_default_ipv4.address }}'
