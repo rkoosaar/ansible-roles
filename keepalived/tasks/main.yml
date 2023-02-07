@@ -25,11 +25,11 @@
   ansible.builtin.file:
     name: "{{ keepalived_scripts_dir }}"
     state: directory
-  vars:
-    gen_auth_pass: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
 
 - ansible.builtin.set_fact:
     keepalived_auth_pass: "{{ gen_auth_pass }}"
+  vars:
+    gen_auth_pass: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
 
 - name: creatre chk_ftl script
   ansible.builtin.copy:
