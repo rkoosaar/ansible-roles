@@ -4,8 +4,8 @@
     state: stopped
     daemon_reload: yes
     name: "{{ item }}"
-    enabled: yes
-    masked: yes
+    enabled: false
+    masked: true
   loop: 
     - sleep.target
     - suspend.target
