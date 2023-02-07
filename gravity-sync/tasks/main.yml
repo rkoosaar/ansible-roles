@@ -52,19 +52,19 @@
     path: "{{ gs_config_dir }}/gravity-sync.conf"
     regexp: "^REMOTE_HOST="
     line: "REMOTE_HOST='{{ gs_host2 }}'"
-  when: ansible_default_ipv4.address ==  '{{ gs_host1 }}' 
+  when: ansible_default_ipv4.address == gs_host1
 
 - name: configure REMOTE_HOST on first server
   ansible.builtin.lineinfile:
     path: "{{ gs_config_dir }}/gravity-sync.conf"
     regexp: "^REMOTE_HOST="
     line: "REMOTE_HOST='{{ gs_host1 }}'"
-  when: ansible_default_ipv4.address ==  '{{ gs_host2 }}'
+  when: ansible_default_ipv4.address == gs_host2
 
 - name: generate gravity-sync keypair
   community.crypto.openssh_keypair:
     path: "{{ role_path }}/files/gravity-sync.rsa"
-  delegate_to: local
+  delegate_to: localhost
 
 - name: copy gravity-sync keypair with correct permissions
   ansible.builtin.copy:
