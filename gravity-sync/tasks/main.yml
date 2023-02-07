@@ -107,14 +107,22 @@
 #     hash_host: true
 #   with_items: "{{ groups.dns }}"
 
-- name: prepare known_hosts file for gravity-sync ssh 
-  ansible.builtin.copy:
-    src: "/root/.ssh/known_hosts"
-    dest: "/home/{{ gs_user }}/.ssh/known_hosts"
-    remote_src: true
-    owner: "{{ gs_user }}"
-    group: "{{ gs_group }}"
-    mode: "0644"
+# - name: prepare known_hosts file for gravity-sync ssh 
+#   ansible.builtin.copy:
+#     src: "/root/.ssh/known_hosts"
+#     dest: "/home/{{ gs_user }}/.ssh/known_hosts"
+#     remote_src: true
+#     owner: "{{ gs_user }}"
+#     group: "{{ gs_group }}"
+#     mode: "0644"
+
+- name: set gravity-sync to auto
+  become_user: "{{ gs_user }}"
+  ansible.builtin.shell: bash gravity-sync auto
+  register: gs_set_auto_output
+
+- name: set gravity-sync to auto output
+  ansible.builtin.debug: msg={{ gs_set_auto_output }}
 
 # - name: install gravity-sync
 #   ansible.builtin.shell: ssh -o "StrictHostKeyChecking no" {{ gs_host2 }}
