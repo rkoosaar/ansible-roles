@@ -22,7 +22,7 @@
     - { regexp: '#HandleLidSwitchExternalPower=suspend', line: 'HandleLidSwitchExternalPower=ignore' }
     - { regexp: '#HandleLidSwitchDocked=ignore', line: 'HandleLidSwitchDocked=ignore' }
 
-- name: Reboot Server
+- name: reboot server
   reboot:
     msg: "Reboot initiated by Ansible"
     connect_timeout: 5
