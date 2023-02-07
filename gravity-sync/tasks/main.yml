@@ -49,6 +49,20 @@
     group: root
     mode: "0644"
 
+- name: configure REMOTE_HOST on first server
+  ansible.builtin.lineinfile:
+    path: "{{ gs_config_dir }}/gravity-sync.conf"
+    regexp: "^REMOTE_HOST="
+    line: "REMOTE_HOST='{{ gs_host2 }}'"
+  when: ansible_default_ipv4.address ==  '{{ gs_host1 }}' 
+
+- name: configure REMOTE_HOST on first server
+  ansible.builtin.lineinfile:
+    path: "{{ gs_config_dir }}/gravity-sync.conf"
+    regexp: "^REMOTE_HOST="
+    line: "REMOTE_HOST='{{ gs_host1 }}'"
+  when: ansible_default_ipv4.address ==  '{{ gs_host2 }}'
+
 - name: copy gravity-sync ssh keys with correct permissions
   ansible.builtin.copy:
     src: "{{ item.src }}"
