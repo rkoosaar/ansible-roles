@@ -7,10 +7,10 @@
     enabled: yes
     masked: yes
   loop: 
-    - sleep
-    - suspend
-    - hibernate
-    - hybrid-sleep
+    - sleep.target
+    - suspend.target
+    - hibernate.target
+    - hybrid-sleep.target
 
 - name: "update logind configuration"
   ansible.builtin.lineinfile:
