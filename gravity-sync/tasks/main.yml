@@ -64,6 +64,7 @@
 - name: generate gravity-sync keypair
   community.crypto.openssh_keypair:
     path: "{{ role_path }}/files/gravity-sync.rsa"
+  delegate_to: local
 
 - name: copy gravity-sync keypair with correct permissions
   ansible.builtin.copy:
