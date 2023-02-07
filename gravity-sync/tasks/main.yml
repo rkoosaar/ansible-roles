@@ -31,8 +31,6 @@
     groups: wheel
     append: yes
 
-# add ssh keys for access for {{ gs_user }}
-
 - name: create gravity-sync configuration directory
   ansible.builtin.file:
     name: "{{ gs_config_dir }}"
@@ -63,7 +61,11 @@
     line: "REMOTE_HOST='{{ gs_host1 }}'"
   when: ansible_default_ipv4.address ==  '{{ gs_host2 }}'
 
-- name: copy gravity-sync ssh keys with correct permissions
+- name: generate gravity-sync keypair
+  community.crypto.openssh_keypair:
+    path: "{{ role_path }}/files/gravity-sync.rsa"
+
+- name: copy gravity-sync keypair with correct permissions
   ansible.builtin.copy:
     src: "{{ item.src }}"
     dest: "{{ gs_config_dir }}"
