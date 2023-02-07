@@ -64,6 +64,8 @@
 - name: generate gravity-sync keypair
   community.crypto.openssh_keypair:
     path: "/tmp/gravity-sync.rsa"
+    mode: '0777'
+
   delegate_to: localhost
 
 - name: copy gravity-sync keypair with correct permissions
