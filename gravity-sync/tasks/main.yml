@@ -76,7 +76,7 @@
     group: "{{ gs_group }}"
     mode: "{{ authorized_keys_mode }}"
   vars:
-    authorized_keys_src: 'gravity-sync.rsa'
+    authorized_keys_src: 'gravity-sync.rsa.pub'
     authorized_keys_mode: '0600'
 
 
