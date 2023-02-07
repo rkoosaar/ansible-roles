@@ -61,12 +61,20 @@
     line: "REMOTE_HOST='{{ gs_host1 }}'"
   when: ansible_default_ipv4.address == gs_host2
 
+- name: check if gravity-sync keypair is already generated
+  ansible.builtin.stat:
+    path: "/tmp/gravity-sync.rsa"
+  register: gs_keypair_generated
+
+- ansible.builtin.set_fact:
+    pihole_installed: "{{ gs_keypair_generated.stat.exists | default(false) }}"
+
 - name: generate gravity-sync keypair
   community.crypto.openssh_keypair:
     path: "/tmp/gravity-sync.rsa"
     mode: '0777'
-
   delegate_to: localhost
+  when: not gs_keypair_generated
 
 - name: copy gravity-sync keypair with correct permissions
   ansible.builtin.copy:
@@ -97,7 +105,7 @@
     group: "{{ gs_group }}"
     mode: "{{ authorized_keys_mode }}"
   vars:
-    authorized_keys_src: 'gravity-sync.rsa.pub'
+    authorized_keys_src: '/tmp/gravity-sync.rsa.pub'
     authorized_keys_mode: '0600'
 
 
