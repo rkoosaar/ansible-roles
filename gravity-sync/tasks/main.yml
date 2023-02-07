@@ -66,6 +66,8 @@
   ansible.builtin.file:
     path: "/home/{{ gs_user }}/.ssh"
     state: directory
+    owner: "{{ gs_user }}"
+    group: "{{ gs_group }}"
     mode: '0700'
 
 - name: add gravity-sync ssh keys to authorized_keys file
