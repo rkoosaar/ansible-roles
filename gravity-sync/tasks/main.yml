@@ -62,7 +62,6 @@
   when: ansible_default_ipv4.address == gs_host2
 
 - name: generate gravity-sync keypair
-  become: true
   community.crypto.openssh_keypair:
     path: "/tmp/gravity-sync.rsa"
   delegate_to: localhost
