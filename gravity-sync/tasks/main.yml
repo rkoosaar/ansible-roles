@@ -75,9 +75,9 @@
     owner: "{{ gs_user }}"
     group: "{{ gs_group }}"
     mode: "{{ authorized_keys_mode }}"
-  var:
-    - authorized_keys_src: 'gravity-sync.rsa'
-    - authorized_keys_mode: '0600'
+  vars:
+    authorized_keys_src: 'gravity-sync.rsa'
+    authorized_keys_mode: '0600'
 
 
 
