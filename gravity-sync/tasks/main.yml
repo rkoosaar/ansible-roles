@@ -107,6 +107,14 @@
     hash_host: true
   with_items: "{{ groups.dns }}"
 
+- name: prepare known_hosts file for gravity-sync ssh 
+  ansible.builtin.copy:
+    src: "/root/known_hosts"
+    dest: "/home/{{ gs_user }}/.ssh/known_hosts"
+    owner: "{{ gs_user }}"
+    group: "{{ gs_group }}"
+    mode: "0644"
+
 # - name: install gravity-sync
 #   ansible.builtin.shell: ssh -o "StrictHostKeyChecking no" {{ gs_host2 }}
 #   when: ansible_default_ipv4.address == gs_host1
