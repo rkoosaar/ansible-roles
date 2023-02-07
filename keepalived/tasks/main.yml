@@ -21,22 +21,53 @@
     pkgs_add_rpm:
       - keepalived
 
-# # - name: Copy check_pihole.sh
-# #   copy:
-# #     dest: /etc/keepalived/check_pihole.sh
-# #     src: check_pihole.sh
-# #     mode: 0755
+- name: create scripts in etc directory
+  ansible.builtin.file:
+    name: "{{ keepalived_scripts_dir }}"
+    state: directory
+  vars:
+    gen_auth_pass: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
 
-# - name: Configure keepalived
-#   template:
-#     dest: /etc/keepalived/keepalived.conf
-#     src: keepalived.j2
-#     mode: 0644
-#   notify: Restart keepalived service
+- ansible.builtin.set_fact:
+    keepalived_auth_pass: "{{ gen_auth_pass }}"
 
-# - name: Flush handlers
-#   meta: flush_handlers
+- name: creatre chk_ftl script
+  ansible.builtin.copy:
+    src: "/chk_ftl"
+    dest: "{{ keepalived_scripts_dir }}/chk_ftl"
+    mode: "0755"
 
+- name: prepare keepalived configuration
+  ansible.builtin.template:
+    src: "keepalived.j2"
+    dest: "/etc/keepalived/keepalived.conf"
+    mode: "0644"
 
-# #systemctl enable --now keepalived.service
-# #systemctl status keepalived.service
+- name: "update keepalived configuration on {{ keepalived_instance2 }}"
+  ansible.builtin.lineinfile:
+    path: /etc/keepalived/keepalived.conf
+    regexp: "^    state MASTER"
+    line: "    state BACKUP"
+  when: ansible_default_ipv4.address == keepalived_instance2
+
+- name: "update keepalived configuration on {{ keepalived_instance2 }}"
+  ansible.builtin.lineinfile:
+    path: /etc/keepalived/keepalived.conf
+    regexp: "^    {{ keepalived_instance2 }}"
+    line: "    {{ keepalived_instance1 }}"
+  when: ansible_default_ipv4.address == keepalived_instance2
+
+- name: "update keepalived configuration on {{ keepalived_instance2 }}"
+  ansible.builtin.lineinfile:
+    path: /etc/keepalived/keepalived.conf
+    regexp: "^    unicast_src_ip {{ keepalived_instance1 }}"
+    line: "    unicast_src_ip {{ keepalived_instance2 }}"
+  when: ansible_default_ipv4.address == keepalived_instance2
+
+- name: enable and start keepalived
+  ansible.builtin.systemd:
+    state: restarted
+    daemon_reload: yes
+    name: keepalived
+    enabled: yes
+    masked: no

@@ -1,1 +1,7 @@
 ---
+keepalived_scripts_dir: /etc/scripts
+keepalived_vip: 10.10.10.9
+keepalived_instance1: 10.10.10.10
+keepalived_instance2: 10.10.10.11
+keepalived_router_id: "{{ ansible_host }}"
+keepalived_instance_interface: "{{ ansible_default_ipv4.interface }}"
