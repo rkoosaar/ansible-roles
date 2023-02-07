@@ -122,7 +122,7 @@
   register: gs_set_auto_output
 
 - name: set gravity-sync to auto output
-  ansible.builtin.debug: msg={{ gs_set_auto_output }}
+  ansible.builtin.debug: msg={{ gs_set_auto_output.stdout }}
 
 # - name: install gravity-sync
 #   ansible.builtin.shell: ssh -o "StrictHostKeyChecking no" {{ gs_host2 }}
