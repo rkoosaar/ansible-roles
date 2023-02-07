@@ -30,6 +30,7 @@
     keepalived_auth_pass: "{{ gen_auth_pass }}"
   vars:
     gen_auth_pass: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+  run_once: true
 
 - name: create chk_ftl script
   ansible.builtin.copy:
