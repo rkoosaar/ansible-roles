@@ -30,8 +30,8 @@
   ansible.builtin.dnf:
     name: "{{ pkgs_add_rpm }}"
     state: present
-    when:
-      - ansible_facts['distribution'] == "Fedora"
+  when:
+    - ansible_facts['distribution'] == "Fedora"
 
 
 
