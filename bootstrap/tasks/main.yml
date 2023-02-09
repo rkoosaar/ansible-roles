@@ -14,13 +14,24 @@
     state: present
 
 # Update RPM packages
-- name: Update packages to the lastest versions
+- name: update packages to the lastest versions
   ansible.builtin.dnf:
     name: "*"
     state: latest
 
 # Install RPM packages
-- name: Ensure a list of RPM packages are installed
+- name: ensure a list of RPM packages are installed
   ansible.builtin.dnf:
     name: "{{ pkgs_add_rpm }}"
     state: present
+
+# Install RPM packages
+- name: ensure vim-default-editor installed
+  ansible.builtin.dnf:
+    name: "{{ pkgs_add_rpm }}"
+    state: present
+    when:
+      - ansible_facts['distribution'] == "Fedora"
+
+
+

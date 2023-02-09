@@ -1,6 +1,6 @@
 ---
 pkgs_add_rpm:
-  - vim-default-editor
+  - vim
   - wget
   - python3
   - sudo
