@@ -4,3 +4,4 @@ pkgs_add_rpm:
   - wget
   - python3
   - sudo
+  - policycoreutils-python-utils
